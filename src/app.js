@@ -2,7 +2,6 @@ const express = require("express")
 const { connectDb } = require("./config/database")
 const app = express()
 const User = require('./models/user')
-const user = require("./models/user")
 
 app.use(express.json())
 app.post("/signup", async (req, res) => {
@@ -17,9 +16,9 @@ app.post("/signup", async (req, res) => {
 })
 
 app.get("/user", async (req, res) => {
-
+    const userEmail = req.body.emailId
     try{
-        const user =await User.findOne({emailId : req.body.emailId})
+        const user =await User.find({emailId : userEmail})
         if(!user.length){
             res.status(400).send('User not found')
         }
@@ -47,24 +46,26 @@ app.get('/feed', async (req, res) => {
     }
 })
 
-app.delete('/delete', async(req, res) => {
+app.delete('/user', async(req, res) => {
     try {
-        const user = await User.findByIdAndDelete(req.body.userId)
-        res.status(400).send('User deleted successfully')
+        await User.findByIdAndDelete(req.body.userId)
+        res.status(200).send('User deleted successfully')
     }
-    catch {
-        res.status(400).send('Something went wrong')
+    catch(err) {
+        res.status(400).send('Something went wrong'+err.message)
     }
 })
 
 app.patch('/user', async(req, res) => {
-    const data= req.body
+    const data= req.body.userId
     try {
-        await user.findByIdAndUpdate({_id : req.body.userId}, data) 
+        await User.findByIdAndUpdate({_id : req.body.userId}, data, {
+            runValidators : true
+        }) 
         res.send('Data updated successfully')
     }
-    catch {
-        res.status(400).send('Something went wrong')
+    catch(err){
+        res.status(400).send('Update failed' + err.message)
     }
 })
 
